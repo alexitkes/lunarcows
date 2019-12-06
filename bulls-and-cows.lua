@@ -18,7 +18,8 @@ end
     Generate a random string consisting of 4 different digits
 --]]
 function generate()
-    s = ""
+    local s = ""
+	local n
     repeat
         repeat
             -- A random number from 0 to 9.
@@ -50,6 +51,24 @@ function compare(s, t)
 end
 
 --[[
+    Main loop for a stupid computer opponent. It will try a random
+	number until get 4 bulls.
+--]]
+function stupid_opponent_loop()
+    local bulls = 0
+	local cows = 0
+	local s = ""
+	repeat
+	    s = ""
+		repeat
+            s = s .. tostring(math.random(10) - 1)
+        until #s == 4
+   	    bulls, cows = coroutine.yield(s)
+	until bulls == 4
+	return s
+end
+
+--[[
     Main game loop
 
     Arguments
@@ -62,6 +81,9 @@ function play(num_tries)
     num_tries = num_tries or 20
     -- The string I should guess
     local secret = generate()
+	local bulls
+	local cows
+	local try
     for n = 1, num_tries do
         io.write("This is your try " .. n .. " of " .. num_tries .. "\n")
         repeat
