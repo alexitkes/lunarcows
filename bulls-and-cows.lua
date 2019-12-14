@@ -1,4 +1,15 @@
 --[[
+    Convert a number from 0 to 9999 to 4-digit string
+  ]]
+function to_bcstring(n)
+    local s = tostring(n)
+    while #s < 4 do
+        s = "0"..s
+    end
+    return s
+end
+
+--[[
     Return true if the string consists of 4 digits
 --]]
 function validate_try(s)
@@ -100,6 +111,39 @@ function stupid_opponent_loop()
 end
 
 --[[
+    Main loop for an average stupid computer opponent. It starts with the
+    list of all 4-digit numbers. After every try, it removes all numbers
+    proved impossible numbers from the list and then tries a number randomly
+    selected from within remaining ones and so on.
+--]]
+function average_opponent_loop()
+    local possible = {}
+    local bulls = 0
+    local cows = 0
+    local s = ""
+    local try = ""
+    for i = 0, 9999 do
+        possible[to_bcstring(i)] = true
+    end
+    repeat
+        repeat
+            try = generate_try()
+        until possible[try]
+        bulls, cows = coroutine.yield(try)
+        for i = 0, 9999 do
+            local s = to_bcstring(i)
+            local b
+            local c
+            b, c = compare(try, s)
+            if b ~= bulls or c ~= cows then
+                possible[s] = false
+            end
+        end
+    until bulls == 4
+    return try
+end
+
+--[[
     Main loop for the human player.
 --]]
 function player_loop()
@@ -139,7 +183,7 @@ function play(num_tries)
         {
             name = 'Computer opponent',
             secret = generate_secret(),
-            thread = coroutine.create(stupid_opponent_loop)
+            thread = coroutine.create(average_opponent_loop)
         }
     }
     local status
